@@ -247,7 +247,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   <div class="mvp-home-shell">
     <div class="mvp-home-head">
       <div class="mvp-home-brand"><div class="brand-mark">E</div>Evatech · Instalaciones</div>
-      <label class="btn primary file-btn">Subir programación<input id="home-file-input" type="file" accept=".xml,.html,.htm,text/xml,application/xml,text/html"></label>
+      <label class="btn primary file-btn">Subir programación<input id="home-file-input" type="file" accept=".xml,.html,.htm,.txt,text/xml,application/xml,text/html,text/plain"></label>
     </div>
     <h1 class="mvp-home-title">Busca una instalación por número de abonado</h1>
     <div class="mvp-home-sub">MVP con base de datos simulada en el navegador. Cada abonado conserva sus programaciones, notas y deficiencias para que el siguiente técnico las tenga disponibles.</div>
@@ -264,7 +264,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     <button id="mobile-nav-toggle" class="btn mobile-nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-sidebar">☰ <span>Secciones</span></button>
     <button id="installations-btn" class="btn">Instalaciones</button><button id="notes-btn" class="btn" disabled>Notas</button><button id="history-btn" class="btn" disabled>Histórico XML</button>
     <button id="quick-review-btn" class="btn primary" disabled>Revisión rápida</button><button id="maintenance-btn" class="btn" disabled>Mantenimiento</button><button id="export-excel-btn" class="btn" disabled>Exportar Excel</button><button id="deficiencies-btn" class="btn">Deficiencias</button>
-    <label class="btn primary file-btn">Importar programación<input id="file-input" type="file" accept=".xml,.html,.htm,text/xml,application/xml,text/html"></label>
+    <label class="btn primary file-btn">Importar programación<input id="file-input" type="file" accept=".xml,.html,.htm,.txt,text/xml,application/xml,text/html,text/plain"></label>
   </header>
   <div class="workspace">
     <aside id="mobile-sidebar" class="sidebar">
@@ -273,7 +273,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
       <div id="nav"></div>
     </aside>
     <main id="main" class="main">
-      <div class="empty"><div class="hero"><div class="big">Programaciones de centrales, gestionadas con Evatech.</div><h2>Importa una programación para empezar</h2><p>Visualiza la configuración de la central y gestiona las deficiencias detectadas durante el mantenimiento.</p><div class="hero-actions"><label class="btn primary file-btn">Seleccionar programación<input id="file-input-2" type="file" accept=".xml,.html,.htm,text/xml,application/xml,text/html"></label></div></div></div>
+      <div class="empty"><div class="hero"><div class="big">Programaciones de centrales, gestionadas con Evatech.</div><h2>Importa una programación para empezar</h2><p>Visualiza la configuración de la central y gestiona las deficiencias detectadas durante el mantenimiento.</p><div class="hero-actions"><label class="btn primary file-btn">Seleccionar programación<input id="file-input-2" type="file" accept=".xml,.html,.htm,.txt,text/xml,application/xml,text/html,text/plain"></label></div></div></div>
     </main>
     <aside id="editor" class="editor closed"><div class="empty">Selecciona un elemento para ver su configuración.</div></aside>
   </div>
@@ -474,7 +474,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     return account ? 'abonado:'+String(account).trim().toLocaleLowerCase('es') : legacyProjectKey(doc)||'sin-programacion';
   }
 
-  function currentProjectName(){ const r=root(); return r ? (`Abonado ${state.accountNumber||extractAccountNumber(state.xmlDoc)||'—'} · ${txt(r,'Name')||(r.tagName==='ATS8500Report'?'Programación ATS8500':'Programación Galaxy')}`) : 'Sin programación'; }
+  function currentProjectName(){ const r=root(); return r ? (`Abonado ${state.accountNumber||extractAccountNumber(state.xmlDoc)||'—'} · ${txt(r,'Name')||(r.tagName==='ATS8500Report'?'Programación ATS8500':r.tagName==='ParadoxReport'?'Programación Paradox':'Programación Galaxy')}`) : 'Sin programación'; }
   function loadMaintenances(){ try{return JSON.parse(localStorage.getItem(MAINT_KEY)||'[]')}catch{return []} }
   function saveMaintenances(){ localStorage.setItem(MAINT_KEY,JSON.stringify(maintenances)); }
   function activeMaintenance(create=true){
@@ -502,7 +502,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   }
   const labels = {
     UserCollection:'Usuarios', SpecialUserCollection:'Usuarios especiales', ZoneCollection:'Zonas', AssembleZoneCollection:'Zonas ensambladas', RIOOutputCollection:'Salidas RIO', KeypadOutputCollection:'Salidas de teclado', ScheduleOutputCollection:'Salidas de horario', HeaderOutputCollection:'Salidas de cabecera', GroupCollection:'Grupos', GroupCommunicationsCollection:'Comunicaciones de grupo', LinkCollection:'Enlaces', QuickMenuCollection:'Menú rápido', ScheduleCollection:'Horarios', HolidayCollection:'Festivos', AccessTemplateCollection:'Plantillas de acceso', KeypadCollection:'Teclados', RIOCollection:'Módulos RIO', AudioModuleCollection:'Módulos de audio', AudioChannelCollection:'Canales de audio', MaxCollection:'MAX', DCMCollection:'DCM', DCMReaderCollection:'Lectores DCM', RSLogStringCollection:'Textos RS', RFPortalCollection:'Portales RF', InternalTelecoms:'Telecom interno', ExternalRS232:'RS232 externo', ISDN:'ISDN', Ethernet:'Ethernet', ExternalTelecoms:'Telecom externo', InternalRS232:'RS232 interno', Audio:'Audio', SystemParameters:'Parámetros del sistema', SummerTime:'Horario de verano', RemoteAccess:'Acceso remoto', GroupMode:'Modo de grupos', GlobalAccessOptions:'Opciones globales de acceso',
-    AtsPanelCollection:'Central', AtsRasCollection:'Teclados y lectores', AtsDgpCollection:'Dispositivos DGP', AtsAreaCollection:'Áreas', AtsAreaGroupCollection:'Grupos de áreas', AtsZoneCollection:'Zonas', AtsOutputCollection:'Salidas', AtsUserCollection:'Usuarios', AtsUserGroupCollection:'Grupos de usuarios', AtsDoorGroupCollection:'Grupos de puertas', AtsDoorCollection:'Puertas', AtsRegionCollection:'Regiones', AtsReceiverCollection:'Receptoras', AtsPcConnectionCollection:'Conexiones PC', AtsPathOptionCollection:'Opciones de ruta', AtsSiaEventCollection:'Eventos SIA', AtsVdsMappingCollection:'Mapeo VdS', AtsFilterCollection:'Filtros', AtsTriggerCollection:'Activaciones', AtsSpecialDayCollection:'Días especiales'
+    AtsPanelCollection:'Central', AtsRasCollection:'Teclados y lectores', AtsDgpCollection:'Dispositivos DGP', AtsAreaCollection:'Áreas', AtsAreaGroupCollection:'Grupos de áreas', AtsZoneCollection:'Zonas', AtsOutputCollection:'Salidas', AtsUserCollection:'Usuarios', AtsUserGroupCollection:'Grupos de usuarios', AtsDoorGroupCollection:'Grupos de puertas', AtsDoorCollection:'Puertas', AtsRegionCollection:'Regiones', AtsReceiverCollection:'Receptoras', AtsPcConnectionCollection:'Conexiones PC', AtsPathOptionCollection:'Opciones de ruta', AtsSiaEventCollection:'Eventos SIA', AtsVdsMappingCollection:'Mapeo VdS', AtsFilterCollection:'Filtros', AtsTriggerCollection:'Activaciones', AtsSpecialDayCollection:'Días especiales', ParadoxAreaCollection:'Áreas', ParadoxOutputCollection:'Salidas', ParadoxModuleCollection:'Módulos'
   };
 
   const fieldLabels = {
@@ -521,9 +521,9 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   function fieldLabelFor(tag){ return fieldLabels[tag] || labels[tag] || humanize(tag); }
 
   const categories = [
-    ['Programación',['ZoneCollection','AtsZoneCollection','AssembleZoneCollection','RIOOutputCollection','AtsOutputCollection','KeypadOutputCollection','ScheduleOutputCollection','HeaderOutputCollection','GroupCollection','AtsAreaCollection','AtsAreaGroupCollection','GroupCommunicationsCollection','LinkCollection','QuickMenuCollection','AtsDoorGroupCollection','AtsDoorCollection','AtsRegionCollection']],
+    ['Programación',['ZoneCollection','AtsZoneCollection','AssembleZoneCollection','RIOOutputCollection','AtsOutputCollection','ParadoxOutputCollection','KeypadOutputCollection','ScheduleOutputCollection','HeaderOutputCollection','GroupCollection','AtsAreaCollection','ParadoxAreaCollection','AtsAreaGroupCollection','GroupCommunicationsCollection','LinkCollection','QuickMenuCollection','AtsDoorGroupCollection','AtsDoorCollection','AtsRegionCollection']],
     ['Usuarios y acceso',['UserCollection','SpecialUserCollection','ScheduleCollection','HolidayCollection','AccessTemplateCollection','AtsUserCollection','AtsUserGroupCollection']],
-    ['Hardware',['KeypadCollection','RIOCollection','AudioModuleCollection','AudioChannelCollection','MaxCollection','DCMCollection','DCMReaderCollection','RFPortalCollection','AtsRasCollection','AtsDgpCollection']],
+    ['Hardware',['KeypadCollection','RIOCollection','AudioModuleCollection','AudioChannelCollection','MaxCollection','DCMCollection','DCMReaderCollection','RFPortalCollection','AtsRasCollection','AtsDgpCollection','ParadoxModuleCollection']],
     ['Comunicaciones',['RSLogStringCollection','InternalTelecoms','ExternalRS232','ISDN','Ethernet','ExternalTelecoms','InternalRS232','Audio','AtsReceiverCollection','AtsPcConnectionCollection','AtsPathOptionCollection','AtsSiaEventCollection','AtsVdsMappingCollection','AtsFilterCollection','AtsTriggerCollection']],
     ['Sistema',['SystemParameters','SummerTime','RemoteAccess','GroupMode','GlobalAccessOptions']]
   ];
@@ -705,6 +705,56 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     return normalized;
   }
   function isAtsHtmlReport(text){ return /<html[\s>]/i.test(text) && (/<div[^>]+id=["']PanelDev["']/i.test(text)||/Panel\s+Informe/i.test(text)); }
+  function isParadoxTextReport(text){
+    const sample=String(text||'').replace(/^\uFEFF/,'');
+    return (/Reporte de usuarios|Reporte de PGM|Reporte de área|^\s*Zona\s*$/im.test(sample)) && (/Abonado\s*:/i.test(sample)||/BabyWare/i.test(sample));
+  }
+  function paradoxXmlField(label,value,index){
+    const clean=String(value||'').replace(/\s+/g,' ').trim();
+    return clean?`<${atsSafeTag(label,index)} label="${atsXmlEscape(label)}">${atsXmlEscape(clean)}</${atsSafeTag(label,index)}>`:'';
+  }
+  function paradoxBlock(lines,start,end){
+    return lines.slice(start,end).map(x=>x.replace(/\s+/g,' ').trim()).filter(x=>x&&!/^Impreso:/i.test(x)&&!/^Página\b|^Page\b/i.test(x));
+  }
+  function parseParadoxTextReport(text){
+    if(!isParadoxTextReport(text))return null;
+    const lines=String(text).replace(/\r/g,'').split('\n');
+    const account=lines.map(x=>x.match(/Abonado:\s*(.+)$/i)?.[1]?.trim()).find(Boolean)||'';
+    const serial=lines.map(x=>x.match(/^EVO\s+Número de serie\s+([0-9A-F]+)/i)?.[1]).find(Boolean)||'';
+    const zones=[];
+    const zoneRe=/^\s*(\d{1,3})\s+(.+?)\s+([0-9A-F]{8})\s+(\d+)\s+(.+?)\s+Area\s+(\d+)\s+(.+?)\s*$/i;
+    lines.forEach((line,i)=>{
+      const m=line.match(zoneRe); if(!m)return;
+      const number=String(parseInt(m[1],10)), area=`Area ${m[6]}`;
+      const fields=[`<Name>${atsXmlEscape(m[2].trim())}</Name>`,`<Description>${atsXmlEscape(m[2].trim())}</Description>`,
+        `<TXSerial>${atsXmlEscape(m[3])}</TXSerial>`,`<Input>${atsXmlEscape(m[4])}</Input>`,`<Type>${atsXmlEscape(m[7].trim())}</Type>`,`<Area>${atsXmlEscape(area)}</Area>`,`<State>${atsXmlEscape(m[5].trim())}</State>`];
+      const next=lines.slice(i+1,i+6).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
+      next.filter(x=>/^(Saboteada|Antimask Trouble)/i.test(x)).forEach((x,j)=>fields.push(paradoxXmlField(j?'Antimask':'Sabotaje',x.replace(/^(Saboteada|Antimask Trouble)\s*/i,''),j)));
+      zones.push(`<Item id="${atsXmlEscape(number)}">${fields.join('')}</Item>`);
+    });
+    const users=[];
+    lines.forEach((line)=>{const m=line.match(/^\s*(\d{3})\s+User\s+(.+?)\s*$/i);if(m)users.push(`<Item id="${atsXmlEscape(String(parseInt(m[1],10)))}"><Name>${atsXmlEscape(m[2].trim())}</Name><Description>${atsXmlEscape(m[2].trim())}</Description></Item>`);});
+    const outputs=[]; let currentModule='EVO', moduleSerial=serial;
+    lines.forEach((line,i)=>{
+      const module=line.match(/^\s*(EVO|K641|APRZX8)\s+Número de serie\s+([0-9A-F]+)/i);
+      if(module){currentModule=module[1];moduleSerial=module[2];return;}
+      const m=line.match(/^\s*(\d{3})\s+PGM\s+(.+?)\s+(Entrada)\s+(Evento de activación)\s*$/i); if(!m)return;
+      const next=lines.slice(i+1,i+3).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).join(' · ');
+      outputs.push(`<Item id="${atsXmlEscape(`${moduleSerial||currentModule}-${parseInt(m[1],10)}`)}"><Name>${atsXmlEscape(`${currentModule} ${m[2].trim()}`)}</Name><Description>${atsXmlEscape(`${currentModule} ${m[2].trim()}`)}</Description><State>${atsXmlEscape(next||'')}</State><ModuleSerial>${atsXmlEscape(moduleSerial||'')}</ModuleSerial></Item>`);
+    });
+    const areas=[];
+    lines.forEach((line,i)=>{
+      const m=line.match(/^\s*Área\s+(\d+)\s+Activar:\s*Area\s+\d+/i); if(!m)return;
+      const area=m[1], end=lines.findIndex((x,j)=>j>i&&/^\s*Área\s+\d+\s+Activar:/i.test(x));
+      const raw=paradoxBlock(lines,i+1,end<0?lines.length:end).slice(0,80);
+      const fields=raw.map((x,j)=>paradoxXmlField('Parámetro del informe',x,j)).filter(Boolean);
+      areas.push(`<Item id="${atsXmlEscape(area)}"><Name>Área ${atsXmlEscape(area)}</Name><Description>Área ${atsXmlEscape(area)}</Description>${fields.join('')}</Item>`);
+    });
+    const rootText=`<ParadoxReport><SourceFormat>BabyWare PDF convertido a texto</SourceFormat><Name>${atsXmlEscape(account||'Paradox')}</Name><AccountNumber>${atsXmlEscape(account)}</AccountNumber><PanelModel>EVO</PanelModel>${serial?`<SerialNumber>${atsXmlEscape(serial)}</SerialNumber>`:''}<ZoneCollection label="Zonas" data-collection="true">${zones.join('')}</ZoneCollection><ParadoxAreaCollection label="Áreas" data-collection="true">${areas.join('')}</ParadoxAreaCollection><ParadoxOutputCollection label="Salidas" data-collection="true">${outputs.join('')}</ParadoxOutputCollection><UserCollection label="Usuarios" data-collection="true">${users.join('')}</UserCollection><ParadoxModuleCollection label="Módulos" data-collection="true"></ParadoxModuleCollection></ParadoxReport>`;
+    const normalized=new DOMParser().parseFromString(rootText,'application/xml');
+    if(normalized.querySelector('parsererror'))throw new Error('El informe Paradox no se pudo normalizar.');
+    return normalized;
+  }
   async function decodeXmlFile(file){
     const buf=await file.arrayBuffer();
     const head=new TextDecoder('windows-1252').decode(buf.slice(0,220));
@@ -717,14 +767,13 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   async function loadFile(file){
     if(!file)return;
     try{
-      const decoded=await decodeXmlFile(file),text=decoded.text;
-      const atsReport=isAtsHtmlReport(text);
-      const doc=atsReport?parseAtsHtmlReport(text):new DOMParser().parseFromString(text,'application/xml');
+      const decoded=await decodeXmlFile(file),text=decoded.text.replace(/^\uFEFF/,''),atsReport=isAtsHtmlReport(text), paradoxReport=isParadoxTextReport(text);
+      const doc=atsReport?parseAtsHtmlReport(text):paradoxReport?parseParadoxTextReport(text):new DOMParser().parseFromString(text,'application/xml');
       const parseErr=doc.querySelector('parsererror');
-      if(parseErr){alert(atsReport?'El informe ATS8500 no se pudo interpretar.':'El XML no se pudo interpretar: '+parseErr.textContent.slice(0,220));return;}
-      const normalizedText=atsReport?new XMLSerializer().serializeToString(doc):text;
-      const saved=await saveProgrammingVersion(doc,normalizedText,atsReport?'ats8500-html':decoded.declared);
-      setLoadedProgramming(doc,normalizedText,atsReport?'ats8500-html':decoded.declared,saved.account,saved.version.uploadedAt,saved.version.id);
+      if(parseErr){alert(atsReport?'El informe ATS8500 no se pudo interpretar.':paradoxReport?'El informe Paradox no se pudo interpretar.':'El XML no se pudo interpretar: '+parseErr.textContent.slice(0,220));return;}
+      const normalized=atsReport||paradoxReport, normalizedText=normalized?new XMLSerializer().serializeToString(doc):text;
+      const saved=await saveProgrammingVersion(doc,normalizedText,normalized?(atsReport?'ats8500-html':'paradox-text'):decoded.declared);
+      setLoadedProgramming(doc,normalizedText,normalized?(atsReport?'ats8500-html':'paradox-text'):decoded.declared,saved.account,saved.version.uploadedAt,saved.version.id);
       renderInstallationHome();
     }catch(err){alert(err?.message||'No se pudo guardar la programación.');}
   }
@@ -781,6 +830,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   function isConfiguredItem(collectionTag,el){
     switch(collectionTag){
       case 'ZoneCollection': return hasText(el,'Description');
+      case 'ParadoxOutputCollection': return !/deshabilitado/i.test(txt(el,'State'));
       case 'RIOOutputCollection':
       case 'KeypadOutputCollection':
       case 'HeaderOutputCollection': return !outputUsesFactoryValues(el,collectionTag);
@@ -1222,6 +1272,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
 
   function zonesForGroup(group){
     const isAtsArea=group?.parentElement?.tagName==='AtsAreaCollection';
+    const isParadoxArea=group?.parentElement?.tagName==='ParadoxAreaCollection';
     if(isAtsArea){
       const zones=sectionEl('AtsZoneCollection');
       const assigned=[...group.children].find(x=>/zonas asignadas/i.test(x.getAttribute('label')||''));
@@ -1229,6 +1280,12 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
       if(!zones||!ids.length)return [];
       return directChildren(zones)
         .filter(z=>ids.includes(String(z.getAttribute('id')||'')))
+        .sort((a,b)=>String(a.getAttribute('id')||'').localeCompare(String(b.getAttribute('id')||''),undefined,{numeric:true}));
+    }
+    if(isParadoxArea){
+      const zones=sectionEl('ZoneCollection'), areaId=group.getAttribute('id')||'';
+      if(!zones||!areaId)return [];
+      return directChildren(zones).filter(z=>String(txt(z,'Area')).match(new RegExp(`\\b${String(areaId).replace(/[.*+?^${}()|[\\]\\\\]/g,'\\\\$&')}\\b`)))
         .sort((a,b)=>String(a.getAttribute('id')||'').localeCompare(String(b.getAttribute('id')||''),undefined,{numeric:true}));
     }
     const zones=sectionEl('ZoneCollection');
@@ -1243,24 +1300,25 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
 
   function showGroupZones(group){
     if(!group)return;
-    const isAtsArea=group.parentElement?.tagName==='AtsAreaCollection';
-    const collection=isAtsArea?'AtsAreaCollection':'GroupCollection';
+    const isAtsArea=group.parentElement?.tagName==='AtsAreaCollection', isParadoxArea=group.parentElement?.tagName==='ParadoxAreaCollection';
+    const isArea=isAtsArea||isParadoxArea;
+    const collection=isAtsArea?'AtsAreaCollection':isParadoxArea?'ParadoxAreaCollection':'GroupCollection';
     state.view='group-zones'; state.section=collection; state.selected=group; $('#editor').classList.add('closed'); renderChrome();
 
     const groupInfo=rowInfo(group);
     const groupNumber=groupNumberFromValue(group.getAttribute('id')||txt(group,'Group')||txt(group,'Number'));
-    const groupLabel=isAtsArea?(groupInfo.id||'—'):(groupNumber?partitionLabel(String(groupNumber)):(groupInfo.id||'—'));
+    const groupLabel=isArea?(groupInfo.id||'—'):(groupNumber?partitionLabel(String(groupNumber)):(groupInfo.id||'—'));
     const zones=zonesForGroup(group);
     const withDefs=zones.filter(z=>pendingDeficienciesForElement(z).length>0).length;
 
     $('#main').innerHTML=`<div class="section-head">
       <div>
-        <h1>${isAtsArea?'Área':'Grupo'} ${esc(groupLabel)}</h1>
+        <h1>${isArea?'Área':'Grupo'} ${esc(groupLabel)}</h1>
         <p>${esc(groupInfo.description&&groupInfo.description!=='Group' ? groupInfo.description : 'Zonas pertenecientes a este grupo')}</p>
       </div>
       <div class="toolbar">
-        <button class="btn" id="back-to-groups">← Volver a ${isAtsArea?'áreas':'grupos'}</button>
-        <button class="btn" id="open-group-details">Ver configuración de ${isAtsArea?'el área':'el grupo'}</button>
+        <button class="btn" id="back-to-groups">← Volver a ${isArea?'áreas':'grupos'}</button>
+        <button class="btn" id="open-group-details">Ver configuración de ${isArea?'el área':'el grupo'}</button>
       </div>
     </div>
     <div class="group-zone-summary">
@@ -1268,7 +1326,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
       <div class="group-zone-card"><div class="mini-label">Zonas configuradas</div><div class="value">${zones.length}</div></div>
       <div class="group-zone-card"><div class="mini-label">Con deficiencias pendientes</div><div class="value">${withDefs}</div></div>
     </div>
-    <div class="relation-toolbar"><input id="group-zone-search" class="search" placeholder="Buscar número, descripción o ${isAtsArea?'tipo de zona':'función'}…" style="min-width:min(440px,100%)"></div>
+    <div class="relation-toolbar"><input id="group-zone-search" class="search" placeholder="Buscar número, descripción o ${isArea?'tipo de zona':'función'}…" style="min-width:min(440px,100%)"></div>
     <div id="group-zone-list" class="group-zone-list"></div>`;
 
     const list=$('#group-zone-list'), search=$('#group-zone-search');
@@ -1286,7 +1344,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
             <div class="group-zone-description">${esc(r.description||'—')}</div>
             ${defs.length?`<button type="button" class="zone-def-badge" data-group-zone-defs="${i}" style="margin-top:6px">${defs.length} deficiencia${defs.length===1?'':'s'} pendiente${defs.length===1?'':'s'}</button>`:''}
           </div>
-          <div class="group-zone-function"><span class="row-cell-label">${isAtsArea?'Tipo de zona':'Función'}</span>${esc(r.func||r.sub||'—')}</div>
+          <div class="group-zone-function"><span class="row-cell-label">${isArea?'Tipo de zona':'Función'}</span>${esc(r.func||r.sub||'—')}</div>
         </div>`;
       }).join(''):`<div class="group-zone-empty">No hay zonas configuradas en este grupo${q?' que coincidan con la búsqueda':''}.</div>`;
 
@@ -1535,7 +1593,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     document.querySelectorAll('.row[data-index]').forEach(r=>r.onclick=e=>{
       if(e.target.closest('[data-zone-defs]'))return;
       const item=items[+r.dataset.index];
-      if(state.section==='GroupCollection'||state.section==='AtsAreaCollection') showGroupZones(item);
+      if(state.section==='GroupCollection'||state.section==='AtsAreaCollection'||state.section==='ParadoxAreaCollection') showGroupZones(item);
       else selectNode(item);
     });
     document.querySelectorAll('[data-zone-defs]').forEach(b=>b.onclick=e=>{e.stopPropagation();showZonePendingDeficiencies(items[+b.dataset.zoneDefs])});
