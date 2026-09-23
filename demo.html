@@ -239,6 +239,13 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   .topbar .brand{font-size:14px}
   .mvp-install-actions{grid-template-columns:1fr}
 }
+.demo-guide{margin:22px 0 20px;padding:18px;border:1px solid #365985;border-radius:16px;background:linear-gradient(135deg,rgba(44,87,143,.3),rgba(17,26,46,.95));box-shadow:0 14px 32px rgba(0,0,0,.18)}
+.demo-guide-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}.demo-guide-head h2{margin:0 0 4px;font-size:20px}.demo-guide-head p{margin:0;color:#c2d4ee}.demo-guide-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.demo-guide-step{min-width:0;padding:12px;border:1px solid rgba(111,158,214,.3);border-radius:12px;background:rgba(8,17,32,.46)}.demo-guide-step-number{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#3c82df;color:#fff;font-weight:900;margin-bottom:9px}.demo-guide-step strong{display:block;margin-bottom:4px}.demo-guide-step span{display:block;color:var(--muted);font-size:12px;line-height:1.4}.demo-private-note{display:flex;gap:9px;align-items:flex-start;margin-top:13px;padding:10px 12px;border:1px solid rgba(71,209,140,.35);border-radius:10px;background:rgba(71,209,140,.08);color:#b9efd2;font-size:12px}.demo-private-note strong{color:#dcffe9}
+.guide-overlay{position:fixed;inset:0;z-index:45;display:grid;place-items:center;padding:20px;background:rgba(2,6,15,.78);backdrop-filter:blur(5px)}.guide-overlay.hidden{display:none}.guide-dialog{width:min(850px,calc(100vw - 40px));max-height:calc(100vh - 40px);overflow:auto;border:1px solid #416995;border-radius:18px;background:#0d172a;box-shadow:0 30px 90px rgba(0,0,0,.55);padding:24px}.guide-dialog-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}.guide-dialog h2{margin:0 0 6px;font-size:25px}.guide-dialog-intro{color:var(--muted);margin:0 0 18px;max-width:680px}.guide-dialog .demo-guide-steps{grid-template-columns:repeat(2,minmax(0,1fr));margin:18px 0}.guide-dialog-foot{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}
+@media(max-width:720px){.demo-guide-head{flex-direction:column}.demo-guide-head .btn{width:100%}.demo-guide-steps,.guide-dialog .demo-guide-steps{grid-template-columns:1fr}.guide-overlay{padding:10px}.guide-dialog{width:100%;max-height:calc(100dvh - 20px);padding:16px}.guide-dialog h2{font-size:21px}}
+.demo-tour-highlight{position:relative!important;z-index:55!important;outline:3px solid var(--warn)!important;outline-offset:4px!important;box-shadow:0 0 0 8px rgba(255,202,90,.2),0 0 28px rgba(255,202,90,.8)!important;border-radius:10px!important}
+.demo-tour-panel{position:fixed;z-index:56;width:min(350px,calc(100vw - 28px));padding:16px;border:2px solid var(--warn);border-radius:14px;background:#111d33;color:var(--text);box-shadow:0 18px 55px rgba(0,0,0,.55);pointer-events:auto}.demo-tour-panel::before{content:"";position:absolute;width:12px;height:12px;background:#111d33;border-left:2px solid var(--warn);border-top:2px solid var(--warn);transform:rotate(45deg);top:-8px;left:26px}.demo-tour-panel[data-placement="above"]::before{top:auto;bottom:-8px;transform:rotate(225deg)}.demo-tour-kicker{font-size:11px;color:var(--warn);font-weight:900;text-transform:uppercase;letter-spacing:.08em}.demo-tour-panel h3{margin:4px 0 6px;font-size:18px}.demo-tour-panel p{margin:0;color:#d5e3f8;line-height:1.45}.demo-tour-progress{height:4px;margin:12px 0;background:#263652;border-radius:99px;overflow:hidden}.demo-tour-progress span{display:block;height:100%;background:var(--warn);border-radius:inherit;transition:width .2s ease}.demo-tour-actions{display:flex;justify-content:space-between;gap:8px;margin-top:12px}.demo-tour-actions .btn{padding:7px 10px;font-size:12px}.demo-tour-skip{color:var(--muted);border-color:transparent;background:transparent}.demo-tour-skip:hover{border-color:var(--line)}
+@media(max-width:720px){.demo-tour-panel{padding:14px}.demo-tour-panel h3{font-size:16px}.demo-tour-actions .btn{flex:1}.demo-tour-skip{flex:0 0 auto}}
 </style>
 </head>
 <body>
@@ -251,6 +258,16 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     </div>
     <h1 class="mvp-home-title">Panel de instalaciones de demostración</h1>
     <div class="mvp-home-sub">Este entorno incluye abonados, zonas, usuarios, anotaciones, deficiencias e histórico XML de ejemplo. Está preparado para enseñar el flujo completo desde cualquier dispositivo.</div>
+    <section class="demo-guide" aria-labelledby="demo-guide-title">
+      <div class="demo-guide-head"><div><h2 id="demo-guide-title">Guía rápida para conocer Evatech</h2><p>Un recorrido de dos minutos por las funciones más útiles para el equipo técnico.</p></div><button id="guide-open-home" class="btn primary" type="button">Ver guía completa</button></div>
+      <div class="demo-guide-steps">
+        <div class="demo-guide-step"><div class="demo-guide-step-number">1</div><strong>Abre un abonado</strong><span>Consulta su programación, central, usuarios y zonas desde una sola vista.</span></div>
+        <div class="demo-guide-step"><div class="demo-guide-step-number">2</div><strong>Explora los grupos</strong><span>Pulsa un grupo A1 o A2 para ver inmediatamente las zonas que contiene.</span></div>
+        <div class="demo-guide-step"><div class="demo-guide-step-number">3</div><strong>Comprueba los enlaces</strong><span>Relaciona zonas con salidas RIO y entiende cómo está conectada la instalación.</span></div>
+        <div class="demo-guide-step"><div class="demo-guide-step-number">4</div><strong>Documenta la visita</strong><span>Guarda notas internas, deficiencias, revisiones y su resolución para el siguiente técnico.</span></div>
+      </div>
+      <div class="demo-private-note"><span aria-hidden="true">🔒</span><span><strong>Información privada del equipo:</strong> las notas y deficiencias se conservan asociadas al abonado y no forman parte de la programación XML.</span></div>
+    </section>
     <div class="mvp-search-row"><input id="subscriber-search" class="search" inputmode="numeric" placeholder="Número de abonado…"><button id="subscriber-search-btn" class="btn primary">Buscar</button></div>
     <div class="section-head"><div><h2 style="margin:0">Instalaciones</h2><p id="installation-count">0 almacenadas</p></div></div>
     <div id="installation-list" class="mvp-installations"></div>
@@ -262,8 +279,8 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     <span id="panel-badge" class="badge">Sin programación</span>
     <div class="spacer"></div>
     <button id="mobile-nav-toggle" class="btn mobile-nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-sidebar">☰ <span>Secciones</span></button>
-    <button id="installations-btn" class="btn">Instalaciones</button><button id="notes-btn" class="btn" disabled>Notas</button><button id="history-btn" class="btn" disabled>Histórico XML</button>
-    <button id="quick-review-btn" class="btn primary" disabled>Revisión rápida</button><button id="maintenance-btn" class="btn" disabled>Mantenimiento</button><button id="export-excel-btn" class="btn" disabled>Exportar Excel</button><button id="deficiencies-btn" class="btn">Deficiencias</button>
+    <button id="guide-open-top" class="btn">Guía rápida</button><button id="installations-btn" class="btn">Instalaciones</button><button id="notes-btn" class="btn" disabled>Notas equipo</button><button id="history-btn" class="btn" disabled>Histórico XML</button>
+    <button id="quick-review-btn" class="btn primary" disabled>Revisión rápida</button><button id="maintenance-btn" class="btn" disabled>Mantenimiento</button><button id="export-excel-btn" class="btn" disabled>Exportar Excel</button><button id="deficiencies-btn" class="btn">Deficiencias equipo</button>
     <label class="btn primary file-btn">Importar XML<input id="file-input" type="file" accept=".xml,text/xml,application/xml"></label>
   </header>
   <div class="workspace">
@@ -279,6 +296,26 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   </div>
 </div>
 <div id="mobile-nav-backdrop" class="mobile-nav-backdrop" aria-hidden="true"></div>
+<div id="demo-guide-overlay" class="guide-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="guide-dialog-title">
+  <div class="guide-dialog">
+    <div class="guide-dialog-head"><div><h2 id="guide-dialog-title">Guía rápida de Evatech</h2><p class="guide-dialog-intro">Esta demo representa el flujo de trabajo de un técnico: localizar un abonado, entender su programación y dejar documentada la intervención para todo el equipo.</p></div><button id="guide-close" class="btn" type="button" aria-label="Cerrar guía">Cerrar</button></div>
+    <div class="demo-guide-steps">
+      <div class="demo-guide-step"><div class="demo-guide-step-number">1</div><strong>Selecciona una instalación</strong><span>En la pantalla inicial abre “Central Norte” o “Central Sur”. El panel muestra abonado, versión XML, central, RIOs, teclados y comunicaciones.</span></div>
+      <div class="demo-guide-step"><div class="demo-guide-step-number">2</div><strong>Consulta los grupos</strong><span>En el menú lateral entra en <strong>Grupos</strong> y pulsa A1 o A2. Verás sus zonas asociadas, el número de zonas y sus deficiencias pendientes.</span></div>
+      <div class="demo-guide-step"><div class="demo-guide-step-number">3</div><strong>Visualiza la relación de enlaces</strong><span>En <strong>Programación → Relación de enlaces</strong> se muestra visualmente qué zona activa qué salida RIO y si la relación está resuelta.</span></div>
+      <div class="demo-guide-step"><div class="demo-guide-step-number">4</div><strong>Registra el trabajo del equipo</strong><span>Desde una zona añade notas y deficiencias. También puedes revisar todo desde <strong>Notas equipo</strong> y <strong>Deficiencias equipo</strong>, manteniendo separado el XML original.</span></div>
+    </div>
+    <div class="demo-private-note"><span aria-hidden="true">🔒</span><span><strong>Privacidad del equipo:</strong> las anotaciones y deficiencias son información interna asociada al abonado. En esta demo se guardan localmente en el navegador y no se incorporan al XML exportado.</span></div>
+    <div class="guide-dialog-foot"><button id="guide-close-foot" class="btn primary" type="button">Empezar recorrido</button></div>
+  </div>
+</div>
+<div id="demo-tour-panel" class="demo-tour-panel hidden" role="status" aria-live="polite">
+  <div class="demo-tour-kicker" id="demo-tour-kicker">Paso 1 de 7</div>
+  <h3 id="demo-tour-title"></h3>
+  <p id="demo-tour-text"></p>
+  <div class="demo-tour-progress"><span id="demo-tour-progress-bar"></span></div>
+  <div class="demo-tour-actions"><button id="demo-tour-skip" class="btn demo-tour-skip" type="button">Salir</button><button id="demo-tour-next" class="btn" type="button">Siguiente</button></div>
+</div>
 <div id="maintenance-overlay" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="maintenance-title">
   <div class="confirm-dialog">
     <h3 id="maintenance-title">Mantenimiento actual</h3>
@@ -338,11 +375,11 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
 (() => {
   const $ = s => document.querySelector(s);
   const state = { xmlDoc:null, originalText:'', encoding:'utf-8', section:null, selected:null, page:1, pageSize:60, searchMode:false, showAll:false, globalQuery:'', sectionQueries:{}, compareDoc:null, compareName:'', compareTargetDoc:null, compareTargetName:'', compareTargetVersionId:null, compareDiffs:[], view:'editor', accountNumber:'', uploadedAt:null, versionId:null };
-  const DEF_KEY='evatech-demo-deficiencies-v3';
-  const REVIEW_KEY='evatech-demo-zone-reviews-v3';
-  const ZONE_NOTE_KEY='evatech-demo-zone-notes-v3';
-  const MAINT_KEY='evatech-demo-maintenances-v3';
-  const DB_NAME='evatech-demo-db-v3';
+  const DEF_KEY='evatech-demo-deficiencies-v5';
+  const REVIEW_KEY='evatech-demo-zone-reviews-v5';
+  const ZONE_NOTE_KEY='evatech-demo-zone-notes-v5';
+  const MAINT_KEY='evatech-demo-maintenances-v5';
+  const DB_NAME='evatech-demo-db-v5';
   const DB_VERSION=1;
   const INSTALL_STORE='installations';
 
@@ -663,6 +700,11 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   </UserCollection>
   <KeypadCollection><Keypad id="01"><Description>Teclado recepción</Description><Location>Vestíbulo</Location><Address>1</Address></Keypad><Keypad id="02"><Description>Teclado almacén</Description><Location>Almacén</Location><Address>2</Address></Keypad></KeypadCollection>
   <RIOCollection><RIO id="1"><Description>Módulo RIO principal</Description><Address>1</Address><SerialNumber>RIO-2024-001</SerialNumber></RIO></RIOCollection>
+  <RIOOutputCollection><RIOOutput id="1"><Description>Sirena exterior</Description><Function>Sirena</Function><Address>1</Address><Control>1</Control></RIOOutput></RIOOutputCollection>
+  <LinkCollection>
+    <Link id="1"><Description>Alarma de puerta de almacén</Description><FromMode>Zona</FromMode><FromAddress>1002</FromAddress><ToMode>Salida RIO</ToMode><ToAddress>1</ToAddress></Link>
+    <Link id="2"><Description>Entrada principal</Description><FromMode>Zona</FromMode><FromAddress>1001</FromAddress><ToMode>Salida RIO</ToMode><ToAddress>1</ToAddress></Link>
+  </LinkCollection>
   <Ethernet><IPAddress>192.168.10.20</IPAddress><GatewayIPAddress>192.168.10.1</GatewayIPAddress><NetworkMask>255.255.255.0</NetworkMask><SiteName>${site}</SiteName><Protocol>IP</Protocol></Ethernet>
   <GroupCollection><Group id="A1"><Description>Grupo exterior</Description><Groups>1001,1002</Groups></Group><Group id="A2"><Description>Grupo interior</Description><Groups>1003,1004${withExtraZone?',1005':''}</Groups></Group></GroupCollection>
   <SystemParameters><Description>Parámetros generales</Description><BellTime>30</BellTime><EntryTime>45</EntryTime><ExitTime>60</ExitTime></SystemParameters>
@@ -1248,7 +1290,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     state.view='notes';state.section=null;state.selected=null;$('#editor').classList.add('closed');renderChrome();
     const key=currentProjectKey();
     const notes=zoneNotes.filter(n=>n.projectKey===key&&String(n.note||'').trim()).sort((a,b)=>new Date(b.updatedAt||b.createdAt||0)-new Date(a.updatedAt||a.createdAt||0));
-    $('#main').innerHTML=`<div class="section-head"><div><h1>Notas del abonado ${esc(state.accountNumber||'—')}</h1><p>${notes.length} anotación${notes.length===1?'':'es'} guardada${notes.length===1?'':'s'}.</p></div></div><div class="relation-toolbar"><input id="all-notes-search" class="search" placeholder="Buscar zona o texto de la nota…" style="min-width:min(440px,100%)"></div><div id="all-notes-list" class="note-overview-list"></div>`;
+    $('#main').innerHTML=`<div class="section-head"><div><h1>Notas del equipo · Abonado ${esc(state.accountNumber||'—')}</h1><p>${notes.length} anotación${notes.length===1?'':'es'} guardada${notes.length===1?'':'s'}.</p></div></div><div class="demo-private-note"><span aria-hidden="true">🔒</span><span>Notas internas del equipo técnico. Se guardan separadas de la programación XML.</span></div><div class="relation-toolbar"><input id="all-notes-search" class="search" placeholder="Buscar zona o texto de la nota…" style="min-width:min(440px,100%)"></div><div id="all-notes-list" class="note-overview-list"></div>`;
     const list=$('#all-notes-list'),search=$('#all-notes-search');
     const render=(q='')=>{
       q=String(q||'').trim().toLocaleLowerCase('es');
@@ -2042,7 +2084,7 @@ function renderEditor(){
   }
   function showDeficiencies(){
     state.view='deficiencies'; $('#editor').classList.add('closed'); const all=scopedDeficiencies(), open=all.filter(d=>d.status==='open'), done=all.filter(d=>d.status==='done');
-    $('#main').innerHTML=`<div class="section-head"><div><h1>Deficiencias</h1><p>${open.length} pendientes · ${done.length} reparadas · ${esc(currentProjectName())}</p></div></div><div class="notice">Las deficiencias pertenecen al abonado y se conservan aunque se suba una programación XML más reciente.</div><div class="view-tabs"><button class="btn active" data-def-tab="open">Pendientes</button><button class="btn" data-def-tab="done">Reparadas</button></div><div id="def-list"></div>`; renderDefTab('open'); document.querySelectorAll('[data-def-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-def-tab]').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderDefTab(b.dataset.defTab)});
+    $('#main').innerHTML=`<div class="section-head"><div><h1>Deficiencias del equipo</h1><p>${open.length} pendientes · ${done.length} reparadas · ${esc(currentProjectName())}</p></div></div><div class="notice">🔒 Registro interno del equipo: las deficiencias pertenecen al abonado y se conservan aunque se suba una programación XML más reciente.</div><div class="view-tabs"><button class="btn active" data-def-tab="open">Pendientes</button><button class="btn" data-def-tab="done">Reparadas</button></div><div id="def-list"></div>`; renderDefTab('open'); document.querySelectorAll('[data-def-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-def-tab]').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderDefTab(b.dataset.defTab)});
   }
   function renderDefTab(status){
     const list=$('#def-list'), ds=scopedDeficiencies().filter(d=>d.status===status);
@@ -2069,6 +2111,64 @@ function renderEditor(){
   $('#subscriber-search-btn').onclick=()=>renderInstallationHome($('#subscriber-search').value);
   $('#subscriber-search').onkeydown=e=>{if(e.key==='Enter')renderInstallationHome(e.currentTarget.value);};
   $('#home-file-input').onchange=e=>loadFile(e.target.files?.[0]);
+  const guideOverlay=$('#demo-guide-overlay');
+  const closeDemoGuide=()=>{guideOverlay.classList.add('hidden');};
+  const openDemoGuide=()=>{guideOverlay.classList.remove('hidden');setTimeout(()=>$('#guide-close').focus(),0);};
+  $('#guide-open-home').onclick=openDemoGuide;
+  $('#guide-open-top').onclick=openDemoGuide;
+  $('#guide-close').onclick=closeDemoGuide;
+  $('#guide-close-foot').onclick=closeDemoGuide;
+  guideOverlay.onclick=e=>{if(e.target===guideOverlay)closeDemoGuide();};
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDemoGuide();});
+  let demoTourSteps=[],demoTourIndex=0,demoTourTarget=null,demoTourRunning=false;
+  const demoTourIsMobile=()=>window.matchMedia('(max-width:720px)').matches;
+  function buildDemoTourSteps(){
+    const steps=[];
+    if(!state.xmlDoc)steps.push({selector:'.mvp-install-card[data-account]',title:'Abre una instalación',text:'Pulsa esta tarjeta para entrar en una instalación demo y ver su información completa.'});
+    if(demoTourIsMobile())steps.push({selector:'#mobile-nav-toggle',title:'Abre las secciones',text:'En móvil, pulsa aquí para desplegar el menú con todas las secciones de la programación.'});
+    steps.push({selector:'#nav [data-section="GroupCollection"]',title:'Consulta los grupos',text:'Pulsa “Grupos”. Después podrás elegir A1 o A2 y ver las zonas que pertenecen a cada uno.'});
+    steps.push({selector:'.group-zone-row',title:'Mira las zonas del grupo',text:'Pulsa una zona para abrir su configuración, sus notas y sus deficiencias asociadas.'});
+    steps.push({selector:'#nav [data-relations]',title:'Relaciona los elementos',text:'Pulsa “Relación de enlaces” para ver qué zonas activan las salidas RIO de la central.'});
+    steps.push({selector:'#notes-btn',title:'Revisa las notas privadas',text:'Pulsa “Notas equipo”. Son anotaciones internas de mantenimiento, separadas del XML de programación.'});
+    steps.push({selector:'#deficiencies-btn',title:'Controla las deficiencias',text:'Pulsa “Deficiencias equipo” para consultar pendientes, reparadas y las resoluciones registradas.'});
+    return steps;
+  }
+  function clearDemoTourTarget(){if(demoTourTarget){demoTourTarget.classList.remove('demo-tour-highlight');demoTourTarget=null;}}
+  function finishDemoTour(){clearDemoTourTarget();demoTourRunning=false;$('#demo-tour-panel').classList.add('hidden');}
+  function positionDemoTour(){
+    if(!demoTourRunning)return;
+    const step=demoTourSteps[demoTourIndex];
+    const target=document.querySelector(step.selector);
+    if(!target){setTimeout(positionDemoTour,120);return;}
+    clearDemoTourTarget();demoTourTarget=target;demoTourTarget.classList.add('demo-tour-highlight');
+    const rect=target.getBoundingClientRect(),panel=$('#demo-tour-panel');
+    const panelWidth=Math.min(350,window.innerWidth-28),left=Math.max(14,Math.min(rect.left,window.innerWidth-panelWidth-14));
+    panel.style.width=panelWidth+'px';panel.style.left=left+'px';
+    const below=rect.bottom+18,above=rect.top-18-panel.offsetHeight;
+    if(below+panel.offsetHeight<=window.innerHeight-12){panel.style.top=below+'px';panel.dataset.placement='below';}
+    else{panel.style.top=Math.max(12,above)+'px';panel.dataset.placement='above';}
+  }
+  function renderDemoTourStep(){
+    if(!demoTourRunning||demoTourIndex>=demoTourSteps.length){finishDemoTour();return;}
+    const step=demoTourSteps[demoTourIndex],total=demoTourSteps.length;
+    $('#demo-tour-kicker').textContent=`Paso ${demoTourIndex+1} de ${total}`;
+    $('#demo-tour-title').textContent=step.title;$('#demo-tour-text').textContent=step.text;
+    $('#demo-tour-progress-bar').style.width=`${((demoTourIndex+1)/total)*100}%`;
+    $('#demo-tour-next').textContent='Siguiente';$('#demo-tour-panel').classList.remove('hidden');
+    setTimeout(positionDemoTour,30);
+  }
+  function advanceDemoTour(){demoTourIndex++;renderDemoTourStep();}
+  function startDemoTour(){
+    closeDemoGuide();demoTourSteps=buildDemoTourSteps();demoTourIndex=0;demoTourRunning=true;renderDemoTourStep();
+  }
+  $('#demo-tour-skip').onclick=finishDemoTour;
+  $('#demo-tour-next').onclick=advanceDemoTour;
+  document.addEventListener('click',e=>{
+    if(!demoTourRunning||!demoTourTarget)return;
+    if(e.target.closest(demoTourSteps[demoTourIndex].selector))setTimeout(advanceDemoTour,140);
+  },true);
+  window.addEventListener('resize',()=>{if(demoTourRunning)positionDemoTour();});
+  $('#guide-close-foot').onclick=startDemoTour;
   const mobileSidebar=$('#mobile-sidebar'), mobileBackdrop=$('#mobile-nav-backdrop'), mobileToggle=$('#mobile-nav-toggle');
   const closeMobileNav=()=>{mobileSidebar.classList.remove('is-open');mobileBackdrop.classList.remove('is-visible');mobileToggle.setAttribute('aria-expanded','false');};
   const toggleMobileNav=()=>{const open=!mobileSidebar.classList.contains('is-open');mobileSidebar.classList.toggle('is-open',open);mobileBackdrop.classList.toggle('is-visible',open);mobileToggle.setAttribute('aria-expanded',String(open));};
@@ -2077,7 +2177,7 @@ function renderEditor(){
   mobileBackdrop.onclick=closeMobileNav;
   $('#nav').addEventListener('click',e=>{if(e.target.closest('.nav-item'))closeMobileNav();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileNav();});
-  seedDemoData().then(()=>renderInstallationHome());
+  seedDemoData().then(()=>{renderInstallationHome();if(!sessionStorage.getItem('evatech-demo-guide-seen')){sessionStorage.setItem('evatech-demo-guide-seen','1');setTimeout(openDemoGuide,350);}});
 
 })();
 </script>
