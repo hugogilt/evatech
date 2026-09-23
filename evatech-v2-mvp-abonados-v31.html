@@ -247,7 +247,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   <div class="mvp-home-shell">
     <div class="mvp-home-head">
       <div class="mvp-home-brand"><div class="brand-mark">E</div>Evatech · Instalaciones</div>
-      <label class="btn primary file-btn">Subir programación XML<input id="home-file-input" type="file" accept=".xml,text/xml,application/xml"></label>
+      <label class="btn primary file-btn">Subir programación<input id="home-file-input" type="file" accept=".xml,.html,.htm,text/xml,application/xml,text/html"></label>
     </div>
     <h1 class="mvp-home-title">Busca una instalación por número de abonado</h1>
     <div class="mvp-home-sub">MVP con base de datos simulada en el navegador. Cada abonado conserva sus programaciones, notas y deficiencias para que el siguiente técnico las tenga disponibles.</div>
@@ -264,16 +264,16 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     <button id="mobile-nav-toggle" class="btn mobile-nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-sidebar">☰ <span>Secciones</span></button>
     <button id="installations-btn" class="btn">Instalaciones</button><button id="notes-btn" class="btn" disabled>Notas</button><button id="history-btn" class="btn" disabled>Histórico XML</button>
     <button id="quick-review-btn" class="btn primary" disabled>Revisión rápida</button><button id="maintenance-btn" class="btn" disabled>Mantenimiento</button><button id="export-excel-btn" class="btn" disabled>Exportar Excel</button><button id="deficiencies-btn" class="btn">Deficiencias</button>
-    <label class="btn primary file-btn">Importar XML<input id="file-input" type="file" accept=".xml,text/xml,application/xml"></label>
+    <label class="btn primary file-btn">Importar programación<input id="file-input" type="file" accept=".xml,.html,.htm,text/xml,application/xml,text/html"></label>
   </header>
   <div class="workspace">
     <aside id="mobile-sidebar" class="sidebar">
-      <div class="mobile-nav-head"><strong>Secciones XML</strong><button id="mobile-nav-close" class="btn" type="button" aria-label="Cerrar secciones">Cerrar</button></div>
+      <div class="mobile-nav-head"><strong>Secciones de programación</strong><button id="mobile-nav-close" class="btn" type="button" aria-label="Cerrar secciones">Cerrar</button></div>
       <input id="global-search" class="search" placeholder="Buscar en toda la programación…" disabled>
       <div id="nav"></div>
     </aside>
     <main id="main" class="main">
-      <div class="empty"><div class="hero"><div class="big">Programación Galaxy, gestionada con Evatech.</div><h2>Importa un XML para empezar</h2><p>Visualiza la configuración completa de la central y gestiona las deficiencias detectadas durante el mantenimiento.</p><div class="hero-actions"><label class="btn primary file-btn">Seleccionar XML<input id="file-input-2" type="file" accept=".xml,text/xml,application/xml"></label></div></div></div>
+      <div class="empty"><div class="hero"><div class="big">Programaciones de centrales, gestionadas con Evatech.</div><h2>Importa una programación para empezar</h2><p>Visualiza la configuración de la central y gestiona las deficiencias detectadas durante el mantenimiento.</p><div class="hero-actions"><label class="btn primary file-btn">Seleccionar programación<input id="file-input-2" type="file" accept=".xml,.html,.htm,text/xml,application/xml,text/html"></label></div></div></div>
     </main>
     <aside id="editor" class="editor closed"><div class="empty">Selecciona un elemento para ver su configuración.</div></aside>
   </div>
@@ -446,6 +446,20 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
       if(ethernetAccount?.textContent?.trim())return ethernetAccount.textContent.trim();
     }
 
+    // 3. En los informes ATS8500 el abonado aparece dentro de la receptora,
+    // en "Códigos de abonado". Puede haber varias líneas para la misma central;
+    // el primer código es el identificador que usamos para agrupar el proyecto.
+    if(r.tagName==='ATS8500Report'){
+      const receivers=[...r.children].find(x=>x.tagName==='AtsReceiverCollection');
+      const receiver=receivers?.children?.[0];
+      const subscriber=[...receiver?.children||[]].find(x=>/c[oó]digos de abonado/i.test(x.getAttribute('label')||''));
+      const match=subscriber?.textContent?.match(/(?:^|\s)(\d+)\s*-/);
+      if(match?.[1])return match[1];
+    }
+
+    const installationId=[...r.children].find(x=>x.tagName==='InstallationId');
+    if(installationId?.textContent?.trim())return installationId.textContent.trim();
+
     return '';
   }
   function legacyProjectKey(doc=state.xmlDoc){
@@ -460,7 +474,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     return account ? 'abonado:'+String(account).trim().toLocaleLowerCase('es') : legacyProjectKey(doc)||'sin-programacion';
   }
 
-  function currentProjectName(){ const r=root(); return r ? (`Abonado ${state.accountNumber||extractAccountNumber(state.xmlDoc)||'—'} · ${txt(r,'Name')||'Programación Galaxy'}`) : 'Sin programación'; }
+  function currentProjectName(){ const r=root(); return r ? (`Abonado ${state.accountNumber||extractAccountNumber(state.xmlDoc)||'—'} · ${txt(r,'Name')||(r.tagName==='ATS8500Report'?'Programación ATS8500':'Programación Galaxy')}`) : 'Sin programación'; }
   function loadMaintenances(){ try{return JSON.parse(localStorage.getItem(MAINT_KEY)||'[]')}catch{return []} }
   function saveMaintenances(){ localStorage.setItem(MAINT_KEY,JSON.stringify(maintenances)); }
   function activeMaintenance(create=true){
@@ -487,7 +501,8 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     if(changed) localStorage.setItem(DEF_KEY,JSON.stringify(deficiencies));
   }
   const labels = {
-    UserCollection:'Usuarios', SpecialUserCollection:'Usuarios especiales', ZoneCollection:'Zonas', AssembleZoneCollection:'Zonas ensambladas', RIOOutputCollection:'Salidas RIO', KeypadOutputCollection:'Salidas de teclado', ScheduleOutputCollection:'Salidas de horario', HeaderOutputCollection:'Salidas de cabecera', GroupCollection:'Grupos', GroupCommunicationsCollection:'Comunicaciones de grupo', LinkCollection:'Enlaces', QuickMenuCollection:'Menú rápido', ScheduleCollection:'Horarios', HolidayCollection:'Festivos', AccessTemplateCollection:'Plantillas de acceso', KeypadCollection:'Teclados', RIOCollection:'Módulos RIO', AudioModuleCollection:'Módulos de audio', AudioChannelCollection:'Canales de audio', MaxCollection:'MAX', DCMCollection:'DCM', DCMReaderCollection:'Lectores DCM', RSLogStringCollection:'Textos RS', RFPortalCollection:'Portales RF', InternalTelecoms:'Telecom interno', ExternalRS232:'RS232 externo', ISDN:'ISDN', Ethernet:'Ethernet', ExternalTelecoms:'Telecom externo', InternalRS232:'RS232 interno', Audio:'Audio', SystemParameters:'Parámetros del sistema', SummerTime:'Horario de verano', RemoteAccess:'Acceso remoto', GroupMode:'Modo de grupos', GlobalAccessOptions:'Opciones globales de acceso'
+    UserCollection:'Usuarios', SpecialUserCollection:'Usuarios especiales', ZoneCollection:'Zonas', AssembleZoneCollection:'Zonas ensambladas', RIOOutputCollection:'Salidas RIO', KeypadOutputCollection:'Salidas de teclado', ScheduleOutputCollection:'Salidas de horario', HeaderOutputCollection:'Salidas de cabecera', GroupCollection:'Grupos', GroupCommunicationsCollection:'Comunicaciones de grupo', LinkCollection:'Enlaces', QuickMenuCollection:'Menú rápido', ScheduleCollection:'Horarios', HolidayCollection:'Festivos', AccessTemplateCollection:'Plantillas de acceso', KeypadCollection:'Teclados', RIOCollection:'Módulos RIO', AudioModuleCollection:'Módulos de audio', AudioChannelCollection:'Canales de audio', MaxCollection:'MAX', DCMCollection:'DCM', DCMReaderCollection:'Lectores DCM', RSLogStringCollection:'Textos RS', RFPortalCollection:'Portales RF', InternalTelecoms:'Telecom interno', ExternalRS232:'RS232 externo', ISDN:'ISDN', Ethernet:'Ethernet', ExternalTelecoms:'Telecom externo', InternalRS232:'RS232 interno', Audio:'Audio', SystemParameters:'Parámetros del sistema', SummerTime:'Horario de verano', RemoteAccess:'Acceso remoto', GroupMode:'Modo de grupos', GlobalAccessOptions:'Opciones globales de acceso',
+    AtsPanelCollection:'Central', AtsRasCollection:'Teclados y lectores', AtsDgpCollection:'Dispositivos DGP', AtsAreaCollection:'Áreas', AtsAreaGroupCollection:'Grupos de áreas', AtsZoneCollection:'Zonas', AtsOutputCollection:'Salidas', AtsUserCollection:'Usuarios', AtsUserGroupCollection:'Grupos de usuarios', AtsDoorGroupCollection:'Grupos de puertas', AtsDoorCollection:'Puertas', AtsRegionCollection:'Regiones', AtsReceiverCollection:'Receptoras', AtsPcConnectionCollection:'Conexiones PC', AtsPathOptionCollection:'Opciones de ruta', AtsSiaEventCollection:'Eventos SIA', AtsVdsMappingCollection:'Mapeo VdS', AtsFilterCollection:'Filtros', AtsTriggerCollection:'Activaciones', AtsSpecialDayCollection:'Días especiales'
   };
 
   const fieldLabels = {
@@ -506,10 +521,10 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   function fieldLabelFor(tag){ return fieldLabels[tag] || labels[tag] || humanize(tag); }
 
   const categories = [
-    ['Programación',['ZoneCollection','AssembleZoneCollection','RIOOutputCollection','KeypadOutputCollection','ScheduleOutputCollection','HeaderOutputCollection','GroupCollection','GroupCommunicationsCollection','LinkCollection','QuickMenuCollection']],
-    ['Usuarios y acceso',['UserCollection','SpecialUserCollection','ScheduleCollection','HolidayCollection','AccessTemplateCollection']],
-    ['Hardware',['KeypadCollection','RIOCollection','AudioModuleCollection','AudioChannelCollection','MaxCollection','DCMCollection','DCMReaderCollection','RFPortalCollection']],
-    ['Comunicaciones',['RSLogStringCollection','InternalTelecoms','ExternalRS232','ISDN','Ethernet','ExternalTelecoms','InternalRS232','Audio']],
+    ['Programación',['ZoneCollection','AtsZoneCollection','AssembleZoneCollection','RIOOutputCollection','AtsOutputCollection','KeypadOutputCollection','ScheduleOutputCollection','HeaderOutputCollection','GroupCollection','AtsAreaCollection','AtsAreaGroupCollection','GroupCommunicationsCollection','LinkCollection','QuickMenuCollection','AtsDoorGroupCollection','AtsDoorCollection','AtsRegionCollection']],
+    ['Usuarios y acceso',['UserCollection','SpecialUserCollection','ScheduleCollection','HolidayCollection','AccessTemplateCollection','AtsUserCollection','AtsUserGroupCollection']],
+    ['Hardware',['KeypadCollection','RIOCollection','AudioModuleCollection','AudioChannelCollection','MaxCollection','DCMCollection','DCMReaderCollection','RFPortalCollection','AtsRasCollection','AtsDgpCollection']],
+    ['Comunicaciones',['RSLogStringCollection','InternalTelecoms','ExternalRS232','ISDN','Ethernet','ExternalTelecoms','InternalRS232','Audio','AtsReceiverCollection','AtsPcConnectionCollection','AtsPathOptionCollection','AtsSiaEventCollection','AtsVdsMappingCollection','AtsFilterCollection','AtsTriggerCollection']],
     ['Sistema',['SystemParameters','SummerTime','RemoteAccess','GroupMode','GlobalAccessOptions']]
   ];
 
@@ -551,7 +566,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     const version={
       id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
       uploadedAt:now,xml:text,encoding,
-      name:txt(r,'Name')||'Programación Galaxy',
+      name:txt(r,'Name')||(r.tagName==='ATS8500Report'?'Programación ATS8500':'Programación Galaxy'),
       model:txt(r,'PanelModel')||'',
       panelVersion:txt(r,'PanelVersion')||''
     };
@@ -621,6 +636,75 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     setTimeout(()=>$('#subscriber-search').focus(),0);
   }
 
+  function atsXmlEscape(value){ return String(value??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
+  function atsSafeTag(label,index){
+    const base=String(label||'Campo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^\d+/,'').replace(/^_+|_+$/g,'')||'Campo';
+    return `AtsField_${base}_${index}`;
+  }
+  function atsRecordPairs(record){
+    const pairs=[];
+    for(const row of [...record.children].filter(x=>x.classList?.contains('disp_row'))){
+      const spans=[...row.children].filter(x=>x.matches?.('span'));
+      for(let i=0;i+1<spans.length;i+=2){
+        const label=(spans[i].textContent||'').replace(/:$/,'').replace(/\s+/g,' ').trim();
+        const value=(spans[i+1].textContent||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+        if(label&&value)pairs.push({label,value});
+      }
+    }
+    return pairs;
+  }
+  function atsPrimaryName(pairs){
+    const named=/^(Nombre(?: de)?(?: panel| puerta| zona| área| area| DGP| RAS)?|Nombre completo|Descripción)/i;
+    const namedValue=pairs.find(p=>named.test(p.label) && !/^\d+(?:[.,]|$)/.test(p.value))?.value;
+    if(namedValue)return namedValue;
+    const preferred=/^(Número .*|Nº .*|Panel[, ]zona|Panel[, ]salida)/i;
+    return pairs.find(p=>preferred.test(p.label))?.value || pairs[0]?.value || '';
+  }
+  function atsCollectionXml(doc,id,tag,label){
+    const source=doc.querySelector(`#${id}`); if(!source)return '';
+    const records=[...source.children].filter(x=>x.classList?.contains('record'));
+    if(!records.length)return '';
+    const items=records.map((record,recordIndex)=>{
+      const pairs=atsRecordPairs(record), primary=atsPrimaryName(pairs), index=record.getAttribute('index')||String(recordIndex+1);
+      const fields=[`<Name>${atsXmlEscape(primary||index)}</Name>`,`<Description>${atsXmlEscape(primary||index)}</Description>`];
+      pairs.forEach((pair,i)=>fields.push(`<${atsSafeTag(pair.label,i)} label="${atsXmlEscape(pair.label)}">${atsXmlEscape(pair.value)}</${atsSafeTag(pair.label,i)}>`));
+      return `<Item id="${atsXmlEscape(index)}">${fields.join('')}</Item>`;
+    }).join('');
+    return `<${tag} label="${atsXmlEscape(label)}" data-collection="true">${items}</${tag}>`;
+  }
+  function parseAtsHtmlReport(text){
+    const html=new DOMParser().parseFromString(text,'text/html');
+    if(!html.querySelector('#PanelDev') && !/Panel\s+Informe/i.test(html.title||html.body?.textContent||'')) return null;
+    const panel=html.querySelector('#PanelDev .record');
+    const panelPairs=panel?atsRecordPairs(panel):[];
+    const direct=[];
+    const directMap=[
+      ['Nombre de panel','Name'],['Modelo','PanelModel'],['Versión firmware','PanelVersion'],
+      ['Numero serie Placa Base','SerialNumber'],['Dirección MAC','MacAddress'],['Idioma panel','PanelLanguage']
+    ];
+    directMap.forEach(([label,tag])=>{const pair=panelPairs.find(x=>x.label===label);if(pair)direct.push(`<${tag}>${atsXmlEscape(pair.value)}</${tag}>`);});
+    const receiver=html.querySelector('#CSDev .record');
+    const panelIdentifier=receiver?atsRecordPairs(receiver).find(x=>x.label==='Identificador del panel'):null;
+    if(panelIdentifier)direct.push(`<InstallationId>ATS-${atsXmlEscape(panelIdentifier.value.replace(/\s+/g,''))}</InstallationId>`);
+    const collectionMap=[
+      ['RasDev','AtsRasCollection','Teclados y lectores'],['DgpDev','AtsDgpCollection','Dispositivos DGP'],
+      ['AreasDev','AtsAreaCollection','Áreas'],['AreaGroupsDev','AtsAreaGroupCollection','Grupos de áreas'],
+      ['ZonesDev','AtsZoneCollection','Zonas'],['OutputDev','AtsOutputCollection','Salidas'],
+      ['UserDev','AtsUserCollection','Usuarios'],['UserGrpDev','AtsUserGroupCollection','Grupos de usuarios'],
+      ['DoorGroupDev','AtsDoorGroupCollection','Grupos de puertas'],['DoorDev','AtsDoorCollection','Puertas'],
+      ['RegionDev','AtsRegionCollection','Regiones'],['CSDev','AtsReceiverCollection','Receptoras'],
+      ['PCConnDev','AtsPcConnectionCollection','Conexiones PC'],['PathOptDev','AtsPathOptionCollection','Opciones de ruta'],
+      ['SiaEventsDev','AtsSiaEventCollection','Eventos SIA'],['VdsChannelMappingsDev','AtsVdsMappingCollection','Mapeo VdS'],
+      ['FilterDev','AtsFilterCollection','Filtros'],['TriggerDev','AtsTriggerCollection','Activaciones'],
+      ['SpecialDayDev','AtsSpecialDayCollection','Días especiales']
+    ];
+    const sections=collectionMap.map(x=>atsCollectionXml(html,...x)).filter(Boolean).join('');
+    const root=`<ATS8500Report><SourceFormat>ATS8500 HTML</SourceFormat>${direct.join('')}${sections}</ATS8500Report>`;
+    const normalized=new DOMParser().parseFromString(root,'application/xml');
+    if(normalized.querySelector('parsererror'))throw new Error('El informe ATS8500 no se pudo normalizar.');
+    return normalized;
+  }
+  function isAtsHtmlReport(text){ return /<html[\s>]/i.test(text) && (/<div[^>]+id=["']PanelDev["']/i.test(text)||/Panel\s+Informe/i.test(text)); }
   async function decodeXmlFile(file){
     const buf=await file.arrayBuffer();
     const head=new TextDecoder('windows-1252').decode(buf.slice(0,220));
@@ -634,11 +718,13 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     if(!file)return;
     try{
       const decoded=await decodeXmlFile(file),text=decoded.text;
-      const doc=new DOMParser().parseFromString(text,'application/xml');
+      const atsReport=isAtsHtmlReport(text);
+      const doc=atsReport?parseAtsHtmlReport(text):new DOMParser().parseFromString(text,'application/xml');
       const parseErr=doc.querySelector('parsererror');
-      if(parseErr){alert('El XML no se pudo interpretar: '+parseErr.textContent.slice(0,220));return;}
-      const saved=await saveProgrammingVersion(doc,text,decoded.declared);
-      setLoadedProgramming(doc,text,decoded.declared,saved.account,saved.version.uploadedAt,saved.version.id);
+      if(parseErr){alert(atsReport?'El informe ATS8500 no se pudo interpretar.':'El XML no se pudo interpretar: '+parseErr.textContent.slice(0,220));return;}
+      const normalizedText=atsReport?new XMLSerializer().serializeToString(doc):text;
+      const saved=await saveProgrammingVersion(doc,normalizedText,atsReport?'ats8500-html':decoded.declared);
+      setLoadedProgramming(doc,normalizedText,atsReport?'ats8500-html':decoded.declared,saved.account,saved.version.uploadedAt,saved.version.id);
       renderInstallationHome();
     }catch(err){alert(err?.message||'No se pudo guardar la programación.');}
   }
@@ -648,6 +734,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   function sectionEl(tag){ return directChildren(root()).find(x=>x.tagName===tag); }
   function isCollection(el){
     if(!el) return false;
+    if(el.getAttribute?.('data-collection')==='true') return true;
     const kids=directChildren(el); if(!kids.length) return false;
     return kids.length>1 && kids.every(k=>k.tagName===kids[0].tagName);
   }
@@ -873,18 +960,19 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     return /^central\b/i.test(name)?name:`CENTRAL ${name}`;
   }
   function configuredZonesForExport(){
-    const col=sectionEl('ZoneCollection');
+    const collectionTag=zoneCollectionTag(), col=sectionEl(collectionTag);
     if(!col)return [];
     return directChildren(col)
-      .filter(z=>isConfiguredItem('ZoneCollection',z))
+      .filter(z=>isConfiguredItem(collectionTag,z))
       .map(z=>{
         const ident=elementIdentity(z);
         const pending=scopedDeficiencies().filter(d=>d.elementKey===ident.key&&d.status==='open');
         const currentNotes=zoneNotesFor(z).filter(noteBelongsToActiveMaintenance);
+        const areaField=[...z.children].find(x=>/^(áreas|areas)$/i.test(x.getAttribute('label')||''));
         return {
           number:z.getAttribute('id')||'',
-          description:txt(z,'Description')||'',
-          partition:partitionLabel(txt(z,'Group')),
+          description:txt(z,'Description')||txt(z,'Name')||'',
+          partition:collectionTag==='AtsZoneCollection'?(areaField?.textContent?.trim()||''):partitionLabel(txt(z,'Group')),
           hasDeficiency:pending.length>0,
           deficiencies:pending.map(d=>d.title||d.note||'Deficiencia').filter(Boolean).join(' | '),
           notes:currentNotes.slice().sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0))
@@ -892,6 +980,27 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
         };
       })
       .sort((a,b)=>String(a.number).localeCompare(String(b.number),undefined,{numeric:true}));
+  }
+
+  function atsEquipmentForExport(){
+    if(root()?.tagName!=='ATS8500Report')return [];
+    const collections=[
+      ['AtsRasCollection','RAS'],['AtsDgpCollection','DGP'],['AtsOutputCollection','SALIDA'],
+      ['AtsDoorCollection','PUERTA'],['AtsUserCollection','USUARIO']
+    ];
+    const rows=[];
+    collections.forEach(([tag,type])=>{
+      const col=sectionEl(tag); if(!col)return;
+      directChildren(col).filter(item=>isConfiguredItem(tag,item)).forEach(item=>{
+        const details=[...item.children]
+          .filter(field=>field.getAttribute('label')&&field.textContent.trim()&&field.tagName!=='Name'&&field.tagName!=='Description')
+          .slice(0,8)
+          .map(field=>`${field.getAttribute('label')}: ${field.textContent.trim()}`)
+          .join(' · ');
+        rows.push({type,address:item.getAttribute('id')||'',description:txt(item,'Description')||txt(item,'Name')||'',details});
+      });
+    });
+    return rows;
   }
 
   function riosForExport(){
@@ -970,7 +1079,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     const central=centralExportTitle();
     const model=txt(root(),'PanelModel')||'';
     const version=txt(root(),'PanelVersion')||'';
-    const equipment=[...riosForExport(),...keypadsForExport(),...ipModulesForExport()];
+    const equipment=[...atsEquipmentForExport(),...riosForExport(),...keypadsForExport(),...ipModulesForExport()];
     const zones=configuredZonesForExport();
 
     const equipmentRows=[
@@ -1112,6 +1221,16 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   }
 
   function zonesForGroup(group){
+    const isAtsArea=group?.parentElement?.tagName==='AtsAreaCollection';
+    if(isAtsArea){
+      const zones=sectionEl('AtsZoneCollection');
+      const assigned=[...group.children].find(x=>/zonas asignadas/i.test(x.getAttribute('label')||''));
+      const ids=[...String(assigned?.textContent||'').matchAll(/(?:^|\s)(\d+)\s*-/g)].map(m=>m[1]);
+      if(!zones||!ids.length)return [];
+      return directChildren(zones)
+        .filter(z=>ids.includes(String(z.getAttribute('id')||'')))
+        .sort((a,b)=>String(a.getAttribute('id')||'').localeCompare(String(b.getAttribute('id')||''),undefined,{numeric:true}));
+    }
     const zones=sectionEl('ZoneCollection');
     if(!zones)return [];
     const groupId=groupNumberFromValue(group.getAttribute('id')||txt(group,'Group')||txt(group,'Number'));
@@ -1124,22 +1243,24 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
 
   function showGroupZones(group){
     if(!group)return;
-    state.view='group-zones'; state.section='GroupCollection'; state.selected=group; $('#editor').classList.add('closed'); renderChrome();
+    const isAtsArea=group.parentElement?.tagName==='AtsAreaCollection';
+    const collection=isAtsArea?'AtsAreaCollection':'GroupCollection';
+    state.view='group-zones'; state.section=collection; state.selected=group; $('#editor').classList.add('closed'); renderChrome();
 
     const groupInfo=rowInfo(group);
     const groupNumber=groupNumberFromValue(group.getAttribute('id')||txt(group,'Group')||txt(group,'Number'));
-    const groupLabel=groupNumber?partitionLabel(String(groupNumber)):(groupInfo.id||'—');
+    const groupLabel=isAtsArea?(groupInfo.id||'—'):(groupNumber?partitionLabel(String(groupNumber)):(groupInfo.id||'—'));
     const zones=zonesForGroup(group);
     const withDefs=zones.filter(z=>pendingDeficienciesForElement(z).length>0).length;
 
     $('#main').innerHTML=`<div class="section-head">
       <div>
-        <h1>Grupo ${esc(groupLabel)}</h1>
+        <h1>${isAtsArea?'Área':'Grupo'} ${esc(groupLabel)}</h1>
         <p>${esc(groupInfo.description&&groupInfo.description!=='Group' ? groupInfo.description : 'Zonas pertenecientes a este grupo')}</p>
       </div>
       <div class="toolbar">
-        <button class="btn" id="back-to-groups">← Volver a grupos</button>
-        <button class="btn" id="open-group-details">Ver configuración del grupo</button>
+        <button class="btn" id="back-to-groups">← Volver a ${isAtsArea?'áreas':'grupos'}</button>
+        <button class="btn" id="open-group-details">Ver configuración de ${isAtsArea?'el área':'el grupo'}</button>
       </div>
     </div>
     <div class="group-zone-summary">
@@ -1147,7 +1268,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
       <div class="group-zone-card"><div class="mini-label">Zonas configuradas</div><div class="value">${zones.length}</div></div>
       <div class="group-zone-card"><div class="mini-label">Con deficiencias pendientes</div><div class="value">${withDefs}</div></div>
     </div>
-    <div class="relation-toolbar"><input id="group-zone-search" class="search" placeholder="Buscar número, descripción o función…" style="min-width:min(440px,100%)"></div>
+    <div class="relation-toolbar"><input id="group-zone-search" class="search" placeholder="Buscar número, descripción o ${isAtsArea?'tipo de zona':'función'}…" style="min-width:min(440px,100%)"></div>
     <div id="group-zone-list" class="group-zone-list"></div>`;
 
     const list=$('#group-zone-list'), search=$('#group-zone-search');
@@ -1165,7 +1286,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
             <div class="group-zone-description">${esc(r.description||'—')}</div>
             ${defs.length?`<button type="button" class="zone-def-badge" data-group-zone-defs="${i}" style="margin-top:6px">${defs.length} deficiencia${defs.length===1?'':'s'} pendiente${defs.length===1?'':'s'}</button>`:''}
           </div>
-          <div class="group-zone-function">${esc(r.func||r.sub||'—')}</div>
+          <div class="group-zone-function"><span class="row-cell-label">${isAtsArea?'Tipo de zona':'Función'}</span>${esc(r.func||r.sub||'—')}</div>
         </div>`;
       }).join(''):`<div class="group-zone-empty">No hay zonas configuradas en este grupo${q?' que coincidan con la búsqueda':''}.</div>`;
 
@@ -1183,7 +1304,7 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     };
     render();
     search.oninput=()=>render(search.value);
-    $('#back-to-groups').onclick=()=>openSection('GroupCollection');
+    $('#back-to-groups').onclick=()=>openSection(collection);
     $('#open-group-details').onclick=()=>{state.selected=group;$('#editor').classList.remove('closed');renderEditor();};
   }
 
@@ -1334,14 +1455,20 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
   function renderDashboard(){
     state.section=null; state.selected=null; $('#editor').classList.add('closed'); renderChrome();
     const r=root();
-    const metrics=[['Zonas','ZoneCollection'],['Usuarios','UserCollection'],['Salidas RIO','RIOOutputCollection'],['Grupos','GroupCollection'],['Enlaces','LinkCollection']];
+    const ats=r?.tagName==='ATS8500Report';
+    const metrics=ats
+      ? [['Zonas','AtsZoneCollection'],['Usuarios','AtsUserCollection'],['Puertas','AtsDoorCollection'],['Salidas','AtsOutputCollection'],['Áreas','AtsAreaCollection']]
+      : [['Zonas','ZoneCollection'],['Usuarios','UserCollection'],['Salidas RIO','RIOOutputCollection'],['Grupos','GroupCollection'],['Enlaces','LinkCollection']];
     const rioIds=hardwareRioIds();
     const keypadIds=configuredKeypadIds();
     const panelModel=txt(r,'PanelModel')||'—';
     const panelVersion=txt(r,'PanelVersion')||'—';
-    $('#main').innerHTML=`<div class="section-head"><div><h1>${esc(txt(r,'Name')||'Programación Galaxy')}</h1><p>Abonado ${esc(state.accountNumber||'—')} · Programación subida ${state.uploadedAt?esc(formatZoneNoteDate(state.uploadedAt)):'—'}</p></div></div>
+    const deviceCollection=ats?sectionEl('AtsDgpCollection'):null;
+    const readerCollection=ats?sectionEl('AtsRasCollection'):null;
+    const identityLabel=ats?'Identificador':'Abonado';
+    $('#main').innerHTML=`<div class="section-head"><div><h1>${esc(txt(r,'Name')||(ats?'Programación ATS8500':'Programación Galaxy'))}</h1><p>${identityLabel} ${esc(state.accountNumber||'—')} · Programación subida ${state.uploadedAt?esc(formatZoneNoteDate(state.uploadedAt)):'—'}</p></div></div>
       <div class="install-context">
-        <div class="install-context-card"><div class="mini-label">Número de abonado</div><strong>${esc(state.accountNumber||'—')}</strong></div>
+        <div class="install-context-card"><div class="mini-label">${identityLabel}</div><strong>${esc(state.accountNumber||'—')}</strong></div>
         <div class="install-context-card"><div class="mini-label">Última programación cargada</div><strong>${state.uploadedAt?esc(formatZoneNoteDate(state.uploadedAt)):'—'}</strong></div>
         <div class="install-context-card"><div class="mini-label">Deficiencias pendientes</div><strong>${scopedDeficiencies().filter(d=>d.status==='open').length}</strong></div>
         <div class="install-context-card"><div class="mini-label">Notas guardadas</div><strong>${zoneNotes.filter(n=>n.projectKey===currentProjectKey()).length}</strong></div>
@@ -1355,25 +1482,25 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
           <div class="install-sub">Versión ${esc(panelVersion)}</div>
         </div>
         <div class="install-card">
-          <h3>RIOs · módulos</h3>
-          <div class="install-big">${rioIds.length}</div>
-          <div class="install-sub">RIOs detectados por programación real de zonas/salidas o descripción explícita del módulo.</div>
-          <div class="install-ids">${rioIds.length?esc(rioIds.join(' · ')):'Ninguno identificable con fiabilidad'}</div>
-          <div class="install-note">Esto se refiere a <strong>módulos RIO</strong>. Las <strong>salidas de RIO</strong> se contabilizan aparte y no incrementan directamente este número salvo para identificar la dirección del módulo al que pertenecen.</div>
+          <h3>${ats?'DGP · controladores':'RIOs · módulos'}</h3>
+          <div class="install-big">${ats?(deviceCollection?configuredCountFor(deviceCollection):0):rioIds.length}</div>
+          <div class="install-sub">${ats?'Dispositivos de expansión detectados en el informe.':'RIOs detectados por programación real de zonas/salidas o descripción explícita del módulo.'}</div>
+          <div class="install-ids">${ats?'La programación no aporta estado en tiempo real.':(rioIds.length?esc(rioIds.join(' · ')):'Ninguno identificable con fiabilidad')}</div>
+          <div class="install-note">${ats?'Se muestra la configuración disponible, sin inferir estados actuales.':'Esto se refiere a <strong>módulos RIO</strong>. Las <strong>salidas de RIO</strong> se contabilizan aparte y no incrementan directamente este número salvo para identificar la dirección del módulo al que pertenecen.'}</div>
         </div>
         <div class="install-card">
-          <h3>Teclados</h3>
-          <div class="install-big">${keypadIds.length}</div>
-          <div class="install-sub">Direcciones de teclado identificadas por configuración.</div>
-          <div class="install-ids">${keypadIds.length?esc(keypadIds.join(' · ')):'Ninguno identificable con fiabilidad'}</div>
+          <h3>${ats?'Teclados y lectores':'Teclados'}</h3>
+          <div class="install-big">${ats?(readerCollection?configuredCountFor(readerCollection):0):keypadIds.length}</div>
+          <div class="install-sub">${ats?'Dispositivos RAS y lectores incluidos en la programación.':'Direcciones de teclado identificadas por configuración.'}</div>
+          <div class="install-ids">${ats?'La asignación concreta se consulta en Hardware.':(keypadIds.length?esc(keypadIds.join(' · ')):'Ninguno identificable con fiabilidad')}</div>
         </div>
         <div class="install-card">
           <h3>Comunicaciones</h3>
-          ${commRowsHtml()}
-          <div class="install-note">El XML permite mostrar configuración del módulo/bloque de comunicaciones. No se etiqueta como “online” o “funcionando” porque el XML no aporta estado en tiempo real.</div>
+          ${ats?`<div class="install-row"><span>Receptoras</span><strong>${sectionEl('AtsReceiverCollection')?configuredCountFor(sectionEl('AtsReceiverCollection')):0}</strong></div><div class="install-row"><span>Conexiones PC</span><strong>${sectionEl('AtsPcConnectionCollection')?configuredCountFor(sectionEl('AtsPcConnectionCollection')):0}</strong></div>`:commRowsHtml()}
+          <div class="install-note">La programación describe configuración. No se etiqueta como “online” o “funcionando” porque el archivo no aporta estado en tiempo real.</div>
         </div>
       </div>
-      <div class="card" style="padding:16px"><h2 style="margin-top:0">Visor de configuración</h2><p style="color:var(--muted)">Todas las secciones detectadas en el XML aparecen a la izquierda. La aplicación es de solo lectura: sirve para consultar la programación, buscar elementos, comparar mantenimientos y gestionar deficiencias sin modificar la configuración de la central.</p></div>`;
+      <div class="card" style="padding:16px"><h2 style="margin-top:0">Visor de configuración</h2><p style="color:var(--muted)">Todas las secciones detectadas en la programación aparecen a la izquierda. La aplicación es de solo lectura: sirve para consultar la configuración, buscar elementos, comparar mantenimientos y gestionar deficiencias sin modificar la configuración de la central.</p></div>`;
   }
 
   function openSection(tag){
@@ -1385,7 +1512,8 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     const parentSection=el.parentElement?.tagName||'';
     const fallbackName=parentSection==='LinkCollection'?'Enlace':humanize(el.tagName);
     const description=txt(el,'Description')||txt(el,'Name')||fallbackName;
-    const func=txt(el,'Function')||txt(el,'Type')||txt(el,'Mode')||'';
+    const atsType=[...el.children].find(x=>/tipo de zona/i.test(x.getAttribute('label')||''))?.textContent?.trim()||'';
+    const func=txt(el,'Function')||txt(el,'Type')||txt(el,'Mode')||atsType;
     const sub=func || txt(el,'Groups') || txt(el,'Level') || txt(el,'IPAddress') || '';
     const meta=[txt(el,'Group')&&('Grupo '+txt(el,'Group')), txt(el,'Groups')&&('Grupos '+txt(el,'Groups'))].filter(Boolean)[0]||'';
     return {id,name:description,description,func,sub,meta};
@@ -1401,13 +1529,13 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
     const allItems=directChildren(el), configuredItems=visibleItemsFor(el);
     const items=localQ?configuredItems.filter(x=>searchHaystack(x).includes(localQ)):configuredItems;
     const configured=configuredCountFor(el), pages=Math.max(1,Math.ceil(items.length/state.pageSize)); state.page=Math.min(state.page,pages); const start=(state.page-1)*state.pageSize, chunk=items.slice(start,start+state.pageSize);
-    $('#main').innerHTML=`<div class="section-head"><div><h1>${esc(labelFor(state.section))}</h1><p>${configured} configurados${state.showAll?' · '+allItems.length+' totales':''}${localQ?' · '+items.length+' coincidencias':''} · ${esc((items[0]||allItems[0])?.tagName||'')}</p></div><div class="toolbar"><input id="section-search" class="search local-search" placeholder="Buscar solo en ${esc(labelFor(state.section))}…" value="${esc(state.sectionQueries[state.section]||'')}"><label style="display:flex;align-items:center;gap:6px;color:var(--muted)"><input id="show-all" type="checkbox" ${state.showAll?'checked':''}> Mostrar valores de fábrica</label><select id="page-size"><option ${state.pageSize===30?'selected':''}>30</option><option ${state.pageSize===60?'selected':''}>60</option><option ${state.pageSize===120?'selected':''}>120</option></select></div></div><div class="table">${chunk.map((x,i)=>{const r=rowInfo(x); const isZone=state.section==='ZoneCollection'; const defs=isZone?pendingDeficienciesForElement(x):[]; const latestNote=isZone?latestZoneNote(x):null; const displayId=state.section==='GroupCollection'?(partitionLabel(r.id)||r.id):r.id; return `<div class="row ${isZone?'zone-row ':''}${state.selected===x?'selected':''}" data-index="${start+i}"><div class="id"><span class="row-cell-label">Número</span>${esc(displayId||('#'+(start+i+1)))}</div><div class="title"><span class="row-cell-label">Descripción</span>${esc(r.description||'—')}${defs.length?`<button type="button" class="zone-def-badge" data-zone-defs="${start+i}">${defs.length} deficiencia${defs.length===1?'':'s'} pendiente${defs.length===1?'':'s'}</button>`:''}</div><div class="sub"><span class="row-cell-label">Función</span>${esc(r.func||r.sub||'—')}</div>${isZone?`<div class="zone-latest-note"><span class="row-cell-label">Última nota</span>${latestNote?`<div class="zone-latest-note-text" title="${esc(latestNote.note)}">${esc(latestNote.note)}</div><div class="zone-latest-note-date">${latestNote.updatedAt?'Editada':'Creada'} · ${esc(formatZoneNoteDate(latestNote.updatedAt||latestNote.createdAt))}</div>`:'<div class="zone-latest-note-date">Sin notas</div>'}</div>`:''}</div>`}).join('')||'<div class="notice" style="margin:12px">No hay coincidencias en esta sección.</div>'}</div><div class="pagination"><button class="btn" id="prev" ${state.page<=1?'disabled':''}>Anterior</button><span>Página ${state.page} de ${pages}</span><button class="btn" id="next" ${state.page>=pages?'disabled':''}>Siguiente</button></div>`;
+    $('#main').innerHTML=`<div class="section-head"><div><h1>${esc(labelFor(state.section))}</h1><p>${configured} configurados${state.showAll?' · '+allItems.length+' totales':''}${localQ?' · '+items.length+' coincidencias':''} · ${esc((items[0]||allItems[0])?.tagName||'')}</p></div><div class="toolbar"><input id="section-search" class="search local-search" placeholder="Buscar solo en ${esc(labelFor(state.section))}…" value="${esc(state.sectionQueries[state.section]||'')}"><label style="display:flex;align-items:center;gap:6px;color:var(--muted)"><input id="show-all" type="checkbox" ${state.showAll?'checked':''}> Mostrar valores de fábrica</label><select id="page-size"><option ${state.pageSize===30?'selected':''}>30</option><option ${state.pageSize===60?'selected':''}>60</option><option ${state.pageSize===120?'selected':''}>120</option></select></div></div><div class="table">${chunk.map((x,i)=>{const r=rowInfo(x); const isZone=state.section==='ZoneCollection'||state.section==='AtsZoneCollection'; const functionLabel=state.section==='AtsZoneCollection'?'Tipo de zona':'Función'; const defs=isZone?pendingDeficienciesForElement(x):[]; const latestNote=isZone?latestZoneNote(x):null; const displayId=state.section==='GroupCollection'?(partitionLabel(r.id)||r.id):r.id; return `<div class="row ${isZone?'zone-row ':''}${state.selected===x?'selected':''}" data-index="${start+i}"><div class="id"><span class="row-cell-label">Número</span>${esc(displayId||('#'+(start+i+1)))}</div><div class="title"><span class="row-cell-label">Descripción</span>${esc(r.description||'—')}${defs.length?`<button type="button" class="zone-def-badge" data-zone-defs="${start+i}">${defs.length} deficiencia${defs.length===1?'':'s'} pendiente${defs.length===1?'':'s'}</button>`:''}</div><div class="sub"><span class="row-cell-label">${functionLabel}</span>${esc(r.func||r.sub||'—')}</div>${isZone?`<div class="zone-latest-note"><span class="row-cell-label">Última nota</span>${latestNote?`<div class="zone-latest-note-text" title="${esc(latestNote.note)}">${esc(latestNote.note)}</div><div class="zone-latest-note-date">${latestNote.updatedAt?'Editada':'Creada'} · ${esc(formatZoneNoteDate(latestNote.updatedAt||latestNote.createdAt))}</div>`:'<div class="zone-latest-note-date">Sin notas</div>'}</div>`:''}</div>`}).join('')||'<div class="notice" style="margin:12px">No hay coincidencias en esta sección.</div>'}</div><div class="pagination"><button class="btn" id="prev" ${state.page<=1?'disabled':''}>Anterior</button><span>Página ${state.page} de ${pages}</span><button class="btn" id="next" ${state.page>=pages?'disabled':''}>Siguiente</button></div>`;
     $('#section-search').oninput=e=>{const pos=e.target.selectionStart??e.target.value.length;state.sectionQueries[state.section]=e.target.value;state.page=1;renderSection(true);const n=$('#section-search');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch{}}};
     $('#show-all').onchange=e=>{state.showAll=e.target.checked;state.page=1;renderSection();renderChrome()}; $('#page-size').onchange=e=>{state.pageSize=+e.target.value;state.page=1;renderSection()}; $('#prev').onclick=()=>{state.page--;renderSection()}; $('#next').onclick=()=>{state.page++;renderSection()};
     document.querySelectorAll('.row[data-index]').forEach(r=>r.onclick=e=>{
       if(e.target.closest('[data-zone-defs]'))return;
       const item=items[+r.dataset.index];
-      if(state.section==='GroupCollection') showGroupZones(item);
+      if(state.section==='GroupCollection'||state.section==='AtsAreaCollection') showGroupZones(item);
       else selectNode(item);
     });
     document.querySelectorAll('[data-zone-defs]').forEach(b=>b.onclick=e=>{e.stopPropagation();showZonePendingDeficiencies(items[+b.dataset.zoneDefs])});
@@ -1439,17 +1567,17 @@ button,input,select,textarea{font:inherit}.app{display:grid;grid-template-rows:6
       <div class="zone-def-list">${defs.map(d=>`<div class="zone-def-item" data-zone-def-id="${esc(d.id)}"><div class="zone-def-item-head"><div class="zone-def-item-title">${esc(d.title||d.note||'Deficiencia')}</div><div class="zone-def-item-date">${esc(new Date(d.createdAt).toLocaleString('es-ES'))}</div></div>${d.title&&d.note&&d.note!==d.title?`<div class="zone-def-item-note">${esc(d.note)}</div>`:''}<div class="toolbar"><button class="btn" data-zone-def-done="${esc(d.id)}">Marcar reparada</button><button class="btn danger" data-zone-def-delete="${esc(d.id)}">Eliminar</button></div></div>`).join('')}</div>`;
     overlay.classList.remove('hidden');
 
-    body.querySelectorAll('[data-zone-def-done]').forEach(b=>b.onclick=async()=>{
+      body.querySelectorAll('[data-zone-def-done]').forEach(b=>b.onclick=async()=>{
       const d=deficiencies.find(x=>x.id===b.dataset.zoneDefDone); if(!d)return;
       if(await correctDeficiency(d)){
-        showZonePendingDeficiencies(zone); if(state.section==='ZoneCollection') renderSection();
+        showZonePendingDeficiencies(zone); if(state.section===zoneCollectionTag()) renderSection();
       }
     });
     body.querySelectorAll('[data-zone-def-delete]').forEach(b=>b.onclick=async()=>{
       const d=deficiencies.find(x=>x.id===b.dataset.zoneDefDelete); if(!d)return;
       const ok=await askConfirm('Esta deficiencia se eliminará definitivamente.','Eliminar deficiencia'); if(!ok)return;
       deficiencies=deficiencies.filter(x=>x.id!==d.id); saveDeficiencies();
-      showZonePendingDeficiencies(zone); if(state.section==='ZoneCollection') renderSection();
+      showZonePendingDeficiencies(zone); if(state.section===zoneCollectionTag()) renderSection();
     });
   }
   function closeZoneDeficiencies(){ $('#zone-def-overlay').classList.add('hidden'); }
@@ -1617,7 +1745,7 @@ function renderEditor(){
     <div class="detail-hero">
       <div class="detail-primary"><div class="mini-label">Número</div><div class="detail-number">${esc(info.id||'—')}</div></div>
       <div class="detail-primary"><div class="mini-label">Descripción</div><div class="detail-description">${esc(info.description||'—')}</div></div>
-      <div class="detail-primary"><div class="mini-label">Función</div><div class="detail-function">${esc(info.func||'—')}</div></div>
+      <div class="detail-primary"><div class="mini-label">${ident.section==='AtsZoneCollection'?'Tipo de zona':'Función'}</div><div class="detail-function">${esc(info.func||'—')}</div></div>
     </div>
 
     <div class="maintenance-board">
@@ -1667,7 +1795,7 @@ function renderEditor(){
   function renderLeaf(el,path){
     const value=el.textContent??'';
     const shown=value.trim() || '—';
-    return `<div class="field"><label><span>${esc(fieldLabelFor(el.tagName))}</span></label><div class="readonly-value">${esc(shown)}</div></div>`;
+    return `<div class="field"><label><span>${esc(el.getAttribute?.('label')||fieldLabelFor(el.tagName))}</span></label><div class="readonly-value">${esc(shown)}</div></div>`;
   }
   function findNodeByPath(path){
     const parts=path.split('/').filter(Boolean); if(parts[0]!==root().tagName)return null; let cur=root();
@@ -1791,7 +1919,8 @@ function renderEditor(){
   function loadZoneReviews(){ try{return JSON.parse(localStorage.getItem(REVIEW_KEY)||'[]')}catch{return []} }
   function saveZoneReviews(){ localStorage.setItem(REVIEW_KEY,JSON.stringify(zoneReviews)); }
   function scopedZoneReviews(){ const key=currentProjectKey(); return zoneReviews.filter(r=>r.projectKey===key); }
-  function zoneCollection(){ return sectionEl('ZoneCollection'); }
+  function zoneCollectionTag(){ return root()?.tagName==='ATS8500Report'?'AtsZoneCollection':'ZoneCollection'; }
+  function zoneCollection(){ return sectionEl(zoneCollectionTag()); }
   function zoneItems(){ const c=zoneCollection(); return c ? directChildren(c) : []; }
   function findZoneByTypedNumber(raw){
     const q=String(raw||'').trim().toLocaleLowerCase('es');
@@ -1815,7 +1944,7 @@ function renderEditor(){
     zoneReviews.push({
       id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
       projectKey:currentProjectKey(),projectName:currentProjectName(),
-      elementKey:ident.key,section:'ZoneCollection',elementId:ident.id,
+      elementKey:ident.key,section:zoneCollectionTag(),elementId:ident.id,
       name:info.description||ident.name,status,reason,reviewedAt:now
     });
     saveZoneReviews();
@@ -1829,7 +1958,7 @@ function renderEditor(){
       deficiencies.push({
         id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),
         projectKey:currentProjectKey(),projectName:currentProjectName(),maintenanceId:activeMaintenance(true)?.id||null,
-        elementKey:ident.key,section:'ZoneCollection',elementId:ident.id,
+        elementKey:ident.key,section:zoneCollectionTag(),elementId:ident.id,
         name:info.description||ident.name,title:reason,note:reason,status:'open',
         createdAt:now,updatedAt:null,correctedAt:null
       });
@@ -1873,7 +2002,7 @@ function renderEditor(){
       <div class="quick-zone-head">
         <div class="quick-zone-cell"><div class="mini-label">Número</div><div class="quick-zone-number">${esc(info.id||'—')}</div></div>
         <div class="quick-zone-cell"><div class="mini-label">Descripción</div><div class="quick-zone-desc">${esc(info.description||'—')}</div></div>
-        <div class="quick-zone-cell"><div class="mini-label">Función</div><div class="quick-zone-func">${esc(info.func||'—')}</div></div>
+        <div class="quick-zone-cell"><div class="mini-label">${zoneCollectionTag()==='AtsZoneCollection'?'Tipo de zona':'Función'}</div><div class="quick-zone-func">${esc(info.func||'—')}</div></div>
       </div>
       ${last?`<div class="notice" style="margin-bottom:10px">Última revisión: <strong>${last.status==='correct'?'Correcta':esc(last.reason||'Con deficiencia')}</strong></div>`:''}
       ${existing.length?`<div class="notice warn clickable-def-notice" id="quick-open-defs" style="margin-bottom:10px" role="button" tabindex="0">Esta zona tiene ${existing.length} deficiencia${existing.length===1?'':'s'} pendiente${existing.length===1?'':'s'}. <strong>Pulsa para verlas.</strong></div>`:''}
